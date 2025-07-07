@@ -1,4 +1,4 @@
-import ayncio
+import asyncio
 from typing import Optional
 from contextlib import AsyncExitStack
 
@@ -13,7 +13,7 @@ load_dotenv()
 
 class MCPClient:
     def __init__(self):
-        self.session = Optional[ClientSession] = None
+        self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         self.anthropic = Anthropic()
 
@@ -106,5 +106,46 @@ class MCPClient:
                 )
                 
                 final_text.append(response.content[0].text)
-                
+
         return "\n".join(final_text)
+
+    async def chat_loop(self):
+        # Main loop for chatting with the MCP server
+        print("Welcome to the MCP Client!")
+        print("Type 'quit' to quit.")
+
+        while True:
+            try: 
+                query = input("\nEnter your query: ")
+                if query.lower() == "quit":
+                    break
+
+                response = await self.process_query(query)
+                print("\nResponse from server:")
+                print(response)
+            
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                continue
+        
+    async def cleanup(self):
+        await self.exit_stack.aclose()
+ 
+
+async def main():
+    if len(sys.argv) < 2:
+        print("Usage: python client.py <path_to_server_script>")
+        sys.exit(1)
+    
+    client = MCPClient()
+    try:
+        await client.connect_to_server(sys.argv[1])
+        await client.chat_loop()
+    finally: 
+        await client.cleanup()
+
+
+
+if __name__ == "__main__":
+    import sys
+    asyncio.run(main())

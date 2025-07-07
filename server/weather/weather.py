@@ -2,9 +2,8 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-
 # Init server
-server = FastMCP("weather")
+mcp = FastMCP("weather")
 
 # Consts
 NWS_API_BASE = "https://api.weather.gov"
@@ -23,7 +22,7 @@ async def make_nws_request(url:str) -> dict[str, Any] | None:
             response = await client.get(url, headers=headers, timeout=3.0)
             response.raise_for_status()
             return response.json()
-        expect Exception as e:
+        except Exception as e:
             print(f"Error fetching data from NWS API: {e}")
             return None
 
@@ -93,4 +92,3 @@ async def get_forecast(latitude: float, longitude: float) -> str:
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
-    
